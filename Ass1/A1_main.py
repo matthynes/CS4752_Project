@@ -1,9 +1,10 @@
 import sys  # used for file reading
 import time  # used for timing the path-finding
-import pygame as pg  # used for drawing / event handling
-from settings import *  # use a separate file for all the constant settings
-import grid_solution  # the grid class for this assignment (solution)
+
 import grid_student  # the grid class for this assignment (student)
+import pygame as pg  # used for drawing / event handling
+
+from Ass1.settings import *  # use a separate file for all the constant settings
 
 
 class PathFindingDisplay:

@@ -1,6 +1,6 @@
 import heapq
 
-from settings import *  # use a separate file for all the constant settings
+from Ass1.settings import *  # use a separate file for all the constant settings
 
 
 # the class we will use to store the map, and make calls to path finding
