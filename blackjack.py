@@ -1,10 +1,10 @@
 import random
 
 
-# The Game class facilitates the game operations such as dealing cards and determining winners
+# The Blackjack class facilitates the game operations such as dealing cards and determining winners
 # For simplicity and to reduce the size of the state-action lookup table, hands are implemented as tuples formatted
 # as: (hand_total, soft_ace)
-class Game:
+class Blackjack:
     # start a game of blackjack
     # initial state of game is always random (this is the random sampling part of the MC method)
     def __init__(self):
@@ -93,11 +93,11 @@ class Game:
         elif decision == 1:  # hit
             # Add new card to player's hand
             player_hand = self.draw_card(player_hand)
-            d_hand = self.eval_dealer(dealer_hand)
+            dealer_hand = self.eval_dealer(dealer_hand)
             player_total = self.total_value(player_hand)
             status = 1
             if player_total == 21:
-                if self.total_value(d_hand) == 21:
+                if self.total_value(dealer_hand) == 21:
                     status = 3  # draw, dealer wins
                 else:
                     status = 2  # player wins
