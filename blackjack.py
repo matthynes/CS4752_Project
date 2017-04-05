@@ -1,3 +1,8 @@
+"""A simple implementation of a blackjack game. It does not (currently) do splitting or doubling down. 
+Some of this code was inspired by, adapted and/or combined from 
+https://inst.eecs.berkeley.edu/~cs188/sp08/projects/blackjack/blackjack.py and 
+https://github.com/charleswli/python-blackjack"""
+
 import random
 
 
