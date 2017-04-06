@@ -4,6 +4,7 @@ https://inst.eecs.berkeley.edu/~cs188/sp08/projects/blackjack/blackjack.py and
 https://github.com/charleswli/python-blackjack"""
 
 import random
+import copy
 
 
 # The Blackjack class facilitates the game operations such as dealing cards and determining winners
@@ -16,11 +17,13 @@ class Blackjack:
         # Status is an int used to determine the current state of the game.
         # The dealer wins on a draw since there is no money bet.
         # 1=in progress, 2=player wins; 3=dealer wins/player loses/draw
+        self.newDeck = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [4, 4, 4, 4, 4, 4, 4, 4, 4, 16]]
+        self.deck = copy.deepcopy(self.newDeck)
         self.status = 1
-        self.player_hand = self.draw_card((0, False))
-        self.player_hand = self.draw_card(self.player_hand)
+        self.player_hand = self.draw_card_limitless((0, False))
+        self.player_hand = self.draw_card_limitless(self.player_hand)
         # Dealer starts with one face-up card
-        self.dealer_hand = self.draw_card((0, False))
+        self.dealer_hand = self.draw_card_limitless((0, False))
 
         # Determine if player wins on the first deal
         if self.total_value(self.player_hand) == 21:
@@ -58,7 +61,7 @@ class Blackjack:
 
     # Draws a random card and adds it to the hand provided.
     # Suits (except for Ace) don't matter in blackjack so cards are just values 1 - 10.
-    def draw_card(self, hand):
+    def draw_card_limitless(self, hand):
         val, ace = hand
         # Each card has a 1:13 chance of being drawn but max value is 10.
         # Jack, Queen, and King are normally 11, 12, and 13, respectively, but here they are all 10.
@@ -69,10 +72,31 @@ class Blackjack:
             ace = True
         return val + card, ace
 
+    # Draws a random card and adds it to the hand provided. Also removes card from the deck.
+    # Suits (except for Ace) don't matter in blackjack so cards are just values 1 - 10.
+    # The drawing method uses a deck. Uses a Weighted Roulette method that has its weights changed
+    # as more cards are drawn. If and when a deck runs out, a new deck is "Opened"
+    def draw_card_limited(self, hand):
+        val, ace = hand
+        max = sum(self.deck[1])
+        if max == 0:
+            self.deck = copy.deepcopy(self.newDeck)
+            max = sum(self.deck[1])
+        pick = random.uniform(0, max)
+        current = 0
+        for i, j in enumerate(self.deck[1]):
+            current += j
+            if current > pick:
+                self.deck[1][i] -= 1
+                card = self.deck[0][i]
+        if card == 1:
+            ace = True
+        return val + card, ace
+
     def eval_dealer(self, hand):
         # Dealer 'hits' until hand totals >= 17
         while self.total_value(hand) < 17:
-            hand = self.draw_card(hand)
+            hand = self.draw_card_limitless(hand)
         return hand
 
     # Main gameplay function.
@@ -97,7 +121,7 @@ class Blackjack:
                 status = 3  # player loses
         elif decision == 1:  # hit
             # Add new card to player's hand
-            player_hand = self.draw_card(player_hand)
+            player_hand = self.draw_card_limitless(player_hand)
             dealer_hand = self.eval_dealer(dealer_hand)
             player_total = self.total_value(player_hand)
             status = 1
