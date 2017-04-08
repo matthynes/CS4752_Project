@@ -1,5 +1,13 @@
+import random
+
+import numpy as np
+
+from settings import *
+from blackjack import Blackjack
+
 """This is the environment the Reinforcement Learning agent will use. It uses Q-learning with Monte Carlo (random 
-sampling) methods to play a game of blackjack. Much of this code was inspired by Chapter 5 in the text 'Reinforcement 
+sampling) methods to play_game a game of blackjack. Much of this code was inspired by Chapter 5 in the text 
+'Reinforcement 
 Learning: An Introduction' by R. Sutton and A. Barto"""
 
 
@@ -23,6 +31,15 @@ class RLEnvironment:
         for sa in self.q_table:
             self.counts[sa] = 0
 
+    def get_states(self):
+        return self.states
+
+    def get_q_table(self):
+        return self.q_table
+
+    def get_counts(self):
+        return self.counts
+
     # Calculate the reward of the game: +1 for winning, 0 for draw, or -1 for losing
     def get_reward(self, result):
         return 3 - result
@@ -45,3 +62,42 @@ class RLEnvironment:
         player_hand, dealer_hand, status = state
         player_val, player_ace = player_hand
         return player_val, player_ace, dealer_hand[0]
+
+    def main(self):
+        q_table = self.get_q_table()
+        q_count = self.get_counts()
+
+        for i in range(EPOCHS):
+            # Start a new game
+            game = Blackjack()
+
+            player_hand = game.get_player_hand()
+            dealer_hand = game.get_dealer_hand()
+            status = game.get_status()
+
+            # If player's total is less than 11, draw another card
+            while player_hand[0] < 11:
+                player_hand = game.draw_card_limitless(player_hand)
+                state = (player_hand, dealer_hand, status)
+            rl_state = self.get_rl_state(state)  # Convert to condensed RL state
+
+            # Create dictionary to temporarily hold the current game's state-actions
+            returns = {}  # state, decision, reward
+            while state[2] == 1:  # While game state is not terminal
+                # Epsilon-greedy action selection
+                action_probs = (rl_state, q_table)
+                if random.random() < EPISILON:
+                    decision = random.randint(0, 1)
+                else:
+                    decision = np.argmax(action_probs)  # Select an action
+                sa = (rl_state, decision)
+                # Add an action-value pair to returns list. Default value is 0
+                returns[sa] = 0
+                q_count[sa] += 1  # Increment average counter
+                state = game.play_game(decision)  # Make a move
+                rl_state = self.get_rl_state(state)  # Compress state
+            # After a game is finished, assign rewards to all state-actions that took place in the game
+            for key in returns:
+                returns[key] = self.get_reward(state[2])
+            q_table = self.update_table(q_table, q_count, returns)
+        print("Done")
