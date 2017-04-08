@@ -57,7 +57,7 @@ class RLEnvironment:
         return [stay, hit]
 
     # Converts a game state formatted as ((player_total, ace), (dealer_total, ace), status) to a condensed state
-    # formatted as (player total, usable ace, dealer card). This isn't necessary but makes it easier to work with
+    # formatted as (player total, usable ace, dealer card). This isn't necessary but makes it easier to work with.
     def get_rl_state(self, state):
         player_hand, dealer_hand, status = state
         player_val, player_ace = player_hand
@@ -87,7 +87,7 @@ class RLEnvironment:
             returns = {}  # state, decision, reward
             while state[2] == 1:  # While game state is not terminal
                 # Epsilon-greedy action selection
-                action_probs = (rl_state, q_table)
+                action_probs = self.get_q_reward(rl_state, q_table)
                 if random.random() < EPISILON:
                     decision = random.randint(0, 1)
                 else:
@@ -96,7 +96,9 @@ class RLEnvironment:
                 # Add an action-value pair to returns list. Default value is 0
                 returns[sa] = 0
                 q_count[sa] += 1  # Increment average counter
-                state = game.play_game(decision)  # Make a move
+
+                game.play_game(decision)  # Make a move
+                state = game.get_state()  # Get the new game state
                 rl_state = self.get_rl_state(state)  # Compress state
             # After a game is finished, assign rewards to all state-actions that took place in the game
             for key in returns:
