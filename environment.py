@@ -64,6 +64,7 @@ class RLEnvironment:
         return player_val, player_ace, dealer_hand[0]
 
     def main(self):
+        print("Gonna learn real good.")
         q_table = self.get_q_table()
         q_count = self.get_counts()
 
@@ -100,4 +101,4 @@ class RLEnvironment:
             for key in returns:
                 returns[key] = self.get_reward(state[2])
             q_table = self.update_table(q_table, q_count, returns)
-        print("Done")
+        print("Finished learning.")
