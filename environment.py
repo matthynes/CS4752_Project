@@ -72,6 +72,7 @@ class RLEnvironment:
             # Start a new game
             game = Blackjack()
 
+            state = game.get_state()
             player_hand = game.get_player_hand()
             dealer_hand = game.get_dealer_hand()
             status = game.get_status()
@@ -102,3 +103,8 @@ class RLEnvironment:
                 returns[key] = self.get_reward(state[2])
             q_table = self.update_table(q_table, q_count, returns)
         print("Finished learning.")
+
+
+if __name__ == '__main__':
+    rl_e = RLEnvironment()
+    rl_e.main()
