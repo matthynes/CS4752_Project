@@ -5,7 +5,7 @@ https://github.com/charleswli/python-blackjack"""
 
 import random
 import copy
-
+from settings import *
 
 # The Blackjack class facilitates the game operations such as dealing cards and determining winners
 # For simplicity and to reduce the size of the state-action lookup table, hands are implemented as tuples formatted
@@ -14,16 +14,17 @@ class Blackjack:
     # start a game of blackjack
     # initial state of game is always random (this is the random sampling part of the MC method)
     def __init__(self):
+        self.g_mode = G_Mode
         # Status is an int used to determine the current state of the game.
         # The dealer wins on a draw since there is no money bet.
         # 1=in progress, 2=player wins; 3=dealer wins/player loses/draw
         self.newDeck = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [4, 4, 4, 4, 4, 4, 4, 4, 4, 16]]
         self.deck = copy.deepcopy(self.newDeck)
         self.status = 1
-        self.player_hand = self.draw_card_limitless((0, False))
-        self.player_hand = self.draw_card_limitless(self.player_hand)
+        self.player_hand = self.draw((0, False))
+        self.player_hand = self.draw(self.player_hand)
         # Dealer starts with one face-up card
-        self.dealer_hand = self.draw_card_limitless((0, False))
+        self.dealer_hand = self.draw((0, False))
 
         # Determine if player wins on the first deal
         if self.total_value(self.player_hand) == 21:
@@ -93,10 +94,16 @@ class Blackjack:
             ace = True
         return val + card, ace
 
+    def draw(self, hand):
+        if self.g_mode == "limited":
+            return self.draw_card_limited(hand)
+        elif self.g_mode == "limitless":
+            return self.draw_card_limitless(hand)
+
     def eval_dealer(self, hand):
         # Dealer 'hits' until hand totals >= 17
         while self.total_value(hand) < 17:
-            hand = self.draw_card_limitless(hand)
+            hand = self.draw(hand)
         return hand
 
     # Main gameplay function.
@@ -121,7 +128,7 @@ class Blackjack:
                 status = 3  # player loses
         elif decision == 1:  # hit
             # Add new card to player's hand
-            player_hand = self.draw_card_limitless(player_hand)
+            player_hand = self.draw(player_hand)
             dealer_hand = self.eval_dealer(dealer_hand)
             player_total = self.total_value(player_hand)
             status = 1
