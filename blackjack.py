@@ -101,7 +101,7 @@ class Blackjack:
 
     # Main gameplay function.
     # Decision = 0 or 1 for stay or hit, respectively
-    def play(self, decision):
+    def play_game(self, decision):
         player_hand = self.get_state()[0]
         dealer_hand = self.get_state()[1]
 
