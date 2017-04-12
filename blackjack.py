@@ -7,6 +7,7 @@ import random
 import copy
 from settings import *
 
+
 # The Blackjack class facilitates the game operations such as dealing cards and determining winners
 # For simplicity and to reduce the size of the state-action lookup table, hands are implemented as tuples formatted
 # as: (hand_total, soft_ace)
@@ -15,9 +16,8 @@ class Blackjack:
     # initial state of game is always random (this is the random sampling part of the MC method)
     def __init__(self):
         self.g_mode = G_Mode
-        # Status is an int used to determine the current state of the game.
-        # The dealer wins on a draw since there is no money bet.
-        # 1=in progress, 2=player wins; 3=dealer wins/player loses/draw
+        # Status is an int used to determine the current state of the game.Fs
+        # 1=in progress, 2=player wins, 3=draw, 4=dealer wins
         self.newDeck = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [4, 4, 4, 4, 4, 4, 4, 4, 4, 16]]
         self.deck = copy.deepcopy(self.newDeck)
         self.status = 1
@@ -31,7 +31,7 @@ class Blackjack:
             if self.total_value(self.dealer_hand) != 21:
                 self.status = 2  # player wins after first deal
             else:
-                self.status = 3  # draw / dealer wins
+                self.status = 3  # draw
         # State is a tuple, formatted: ((player_total, soft_ace), (dealer_total, soft_ace), game_status)
         self.state = (self.player_hand, self.dealer_hand, self.status)
 
@@ -109,36 +109,36 @@ class Blackjack:
     # Main gameplay function.
     # Decision = 0 or 1 for stay or hit, respectively
     def play_game(self, decision):
-        player_hand = self.get_state()[0]
-        dealer_hand = self.get_state()[1]
+        p_hand = self.get_player_hand()
+        d_hand = self.get_dealer_hand()
 
         if decision == 0:  # stay
             # Evaluates current game state. Dealer's turn.
-            dealer_hand = self.eval_dealer(dealer_hand)
-            player_total = self.total_value(player_hand)
-            dealer_total = self.total_value(dealer_hand)
-            status = 1
+            d_hand = self.eval_dealer(d_hand)
+            player_total = self.total_value(p_hand)
+            dealer_total = self.total_value(d_hand)
+            self.status = 1
             if dealer_total > 21:
-                status = 2  # dealer bust, player wins
+                self.status = 2  # dealer bust, player wins
             elif dealer_total == player_total:
-                status = 3  # draw (dealer wins)
+                self.status = 3  # draw
             elif dealer_total < player_total:
-                status = 2  # player wins
+                self.status = 2  # player wins
             elif dealer_total > player_total:
-                status = 3  # player loses
+                self.status = 4  # player loses
         elif decision == 1:  # hit
             # Add new card to player's hand
-            player_hand = self.draw(player_hand)
-            dealer_hand = self.eval_dealer(dealer_hand)
-            player_total = self.total_value(player_hand)
-            status = 1
+            p_hand = self.draw(p_hand)
+            d_hand = self.eval_dealer(d_hand)
+            player_total = self.total_value(p_hand)
+            self.status = 1
             if player_total == 21:
-                if self.total_value(dealer_hand) == 21:
-                    status = 3  # draw, dealer wins
+                if self.total_value(d_hand) == 21:
+                    self.status = 3  # draw
                 else:
-                    status = 2  # player wins
+                    self.status = 2  # player wins
             elif player_total > 21:
-                status = 3  # player bust, dealer wins
+                self.status = 4  # player bust, dealer wins
             elif player_total < 21:
-                status = 1  # game still in progress
-        self.state = (player_hand, dealer_hand, status)
+                self.status = 1  # game still in progress
+        self.state = (p_hand, d_hand, self.status)

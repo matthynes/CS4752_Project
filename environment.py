@@ -23,6 +23,8 @@ class RLEnvironment:
         # Create Q-value (action-value) look up table of all possible state-actions and their values
         self.q_table = {}
         for state in self.states:
+            if state[2] > 7:
+                print()
             self.q_table[(state, 0)] = 0.0
             self.q_table[(state, 1)] = 0.0
 
@@ -40,9 +42,9 @@ class RLEnvironment:
     def get_counts(self):
         return self.counts
 
-    # Calculate the reward of the game: +1 for winning, 0 for draw, or -1 for losing
+    # Calculate the reward of the game: +1 for winning, 0 for a draw, or -1 for losing
     def get_reward(self, result):
-        return 2 - result
+        return 3 - result
 
     # Recalculate the average rewards for lookup table
     def update_table(self, q_table, q_count, returns):
@@ -51,9 +53,9 @@ class RLEnvironment:
         return q_table
 
     # returns Q-value/avg rewards for each action given a state
-    def get_q_reward(self, state, av_table):
-        stay = av_table[(state, 0)]
-        hit = av_table[(state, 1)]
+    def get_q_reward(self, state, q_table):
+        stay = q_table[(state, 0)]
+        hit = q_table[(state, 1)]
         return np.array([stay, hit])
 
     # Converts a game state formatted as ((player_total, ace), (dealer_total, ace), status) to a condensed state
@@ -65,8 +67,8 @@ class RLEnvironment:
 
     def main(self):
         print("Gonna learn real good.")
-        q_table = self.get_q_table()
-        q_count = self.get_counts()
+        q_t = self.get_q_table()
+        q_c = self.get_counts()
 
         for i in range(EPOCHS):
             # Start a new game
@@ -85,9 +87,9 @@ class RLEnvironment:
 
             # Create dictionary to temporarily hold the current game's state-actions
             returns = {}  # (state, decision): reward
-            while state[2] == 1:  # While game state is not terminal
+            while game.get_status() == 1:  # While game state is not terminal
                 # Epsilon-greedy action selection
-                action_probs = self.get_q_reward(rl_state, q_table)
+                action_probs = self.get_q_reward(rl_state, q_t)
                 if random.random() < EPISILON:
                     decision = random.randint(0, 1)
                 else:
@@ -95,7 +97,7 @@ class RLEnvironment:
                 sa = (rl_state, decision)
                 # Add an action-value pair to returns list. Default value is 0
                 returns[sa] = 0
-                q_count[sa] += 1  # Increment average counter
+                q_c[sa] += 1  # Increment average counter
 
                 game.play_game(decision)  # Make a move
                 state = game.get_state()  # Get the new game state
@@ -103,12 +105,12 @@ class RLEnvironment:
             # After a game is finished, assign rewards to all state-actions that took place in the game
             for key in returns:
                 returns[key] = self.get_reward(state[2])
-            q_table = self.update_table(q_table, q_count, returns)
+            q_t = self.update_table(q_t, q_c, returns)
 
         print("Finished learning.")
 
         with open('results.txt', 'w') as file:
-            for key, val in q_table.items():
+            for key, val in q_t.items():
                 file.write(str(key) + ':' + str(val) + '\n')
 
 
