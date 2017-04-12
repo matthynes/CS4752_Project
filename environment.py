@@ -1,5 +1,5 @@
 import random
-
+import pickle
 import numpy as np
 
 from settings import *
@@ -20,7 +20,7 @@ class RLEnvironment:
                 self.states.append((val, False, card))
                 self.states.append((val, True, card))
 
-        # Create Q-value look up table of all possible state-actions and their values
+        # Create Q-value (action-value) look up table of all possible state-actions and their values
         self.q_table = {}
         for state in self.states:
             self.q_table[(state, 0)] = 0.0
@@ -42,7 +42,7 @@ class RLEnvironment:
 
     # Calculate the reward of the game: +1 for winning, 0 for draw, or -1 for losing
     def get_reward(self, result):
-        return 3 - result
+        return 2 - result
 
     # Recalculate the average rewards for lookup table
     def update_table(self, q_table, q_count, returns):
@@ -54,7 +54,7 @@ class RLEnvironment:
     def get_q_reward(self, state, av_table):
         stay = av_table[(state, 0)]
         hit = av_table[(state, 1)]
-        return [stay, hit]
+        return np.array([stay, hit])
 
     # Converts a game state formatted as ((player_total, ace), (dealer_total, ace), status) to a condensed state
     # formatted as (player total, usable ace, dealer card). This isn't necessary but makes it easier to work with.
@@ -84,14 +84,14 @@ class RLEnvironment:
             rl_state = self.get_rl_state(state)  # Convert to condensed RL state
 
             # Create dictionary to temporarily hold the current game's state-actions
-            returns = {}  # state, decision, reward
+            returns = {}  # (state, decision): reward
             while state[2] == 1:  # While game state is not terminal
                 # Epsilon-greedy action selection
                 action_probs = self.get_q_reward(rl_state, q_table)
                 if random.random() < EPISILON:
                     decision = random.randint(0, 1)
                 else:
-                    decision = np.argmax(action_probs)  # Select an action
+                    decision = np.argmax(action_probs)  # Select an action with the highest probability
                 sa = (rl_state, decision)
                 # Add an action-value pair to returns list. Default value is 0
                 returns[sa] = 0
@@ -104,7 +104,12 @@ class RLEnvironment:
             for key in returns:
                 returns[key] = self.get_reward(state[2])
             q_table = self.update_table(q_table, q_count, returns)
+
         print("Finished learning.")
+
+        with open('results.txt', 'w') as file:
+            for key, val in q_table.items():
+                file.write(str(key) + ':' + str(val) + '\n')
 
 
 if __name__ == '__main__':
