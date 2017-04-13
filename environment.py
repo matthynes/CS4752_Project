@@ -81,7 +81,7 @@ class RLEnvironment:
 
             # If player's total is less than 11, draw another card
             while player_hand[0] < 11:
-                player_hand = game.draw_card_limitless(player_hand)
+                player_hand = game.draw(player_hand)
                 state = (player_hand, dealer_hand, status)
             rl_state = self.get_rl_state(state)  # Convert to condensed RL state
 
