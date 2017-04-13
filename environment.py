@@ -23,8 +23,6 @@ class RLEnvironment:
         # Create Q-value (action-value) look up table of all possible state-actions and their values
         self.q_table = {}
         for state in self.states:
-            if state[2] > 7:
-                print()
             self.q_table[(state, 0)] = 0.0
             self.q_table[(state, 1)] = 0.0
 
@@ -80,7 +78,7 @@ class RLEnvironment:
             status = game.get_status()
 
             # If player's total is less than 11, draw another card
-            #while player_hand[0] < 11:
+            # while player_hand[0] < 11:
             #    player_hand = game.draw(player_hand)
             #    state = (player_hand, dealer_hand, status)
             rl_state = self.get_rl_state(state, game)  # Convert to condensed RL state
