@@ -60,10 +60,10 @@ class RLEnvironment:
 
     # Converts a game state formatted as ((player_total, ace), (dealer_total, ace), status) to a condensed state
     # formatted as (player total, usable ace, dealer card). This isn't necessary but makes it easier to work with.
-    def get_rl_state(self, state):
+    def get_rl_state(self, state, game):
         player_hand, dealer_hand, status = state
         player_val, player_ace = player_hand
-        return player_val, player_ace, dealer_hand[0]
+        return player_val, player_ace, game.dealer_first_card
 
     def main(self):
         print("Gonna learn real good.")
@@ -80,10 +80,10 @@ class RLEnvironment:
             status = game.get_status()
 
             # If player's total is less than 11, draw another card
-            while player_hand[0] < 11:
-                player_hand = game.draw(player_hand)
-                state = (player_hand, dealer_hand, status)
-            rl_state = self.get_rl_state(state)  # Convert to condensed RL state
+            #while player_hand[0] < 11:
+            #    player_hand = game.draw(player_hand)
+            #    state = (player_hand, dealer_hand, status)
+            rl_state = self.get_rl_state(state, game)  # Convert to condensed RL state
 
             # Create dictionary to temporarily hold the current game's state-actions
             returns = {}  # (state, decision): reward
@@ -101,7 +101,7 @@ class RLEnvironment:
 
                 game.play_game(decision)  # Make a move
                 state = game.get_state()  # Get the new game state
-                rl_state = self.get_rl_state(state)  # Compress state
+                rl_state = self.get_rl_state(state, game)  # Compress state
             # After a game is finished, assign rewards to all state-actions that took place in the game
             for key in returns:
                 returns[key] = self.get_reward(state[2])

@@ -22,9 +22,11 @@ class Blackjack:
         self.deck = copy.deepcopy(self.newDeck)
         self.status = 1
         self.player_hand = self.draw((0, False))
-        self.player_hand = self.draw(self.player_hand)
-        # Dealer starts with one face-up card
+        while self.player_hand[0] < 11:
+            self.player_hand = self.draw(self.player_hand)
+        # Dealer starts with one face-up card.
         self.dealer_hand = self.draw((0, False))
+        self.dealer_first_card = self.dealer_hand[0]
 
         # Determine if player wins on the first deal
         if self.total_value(self.player_hand) == 21:
