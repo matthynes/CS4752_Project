@@ -90,6 +90,7 @@ class Blackjack:
             if current > pick:
                 self.deck[1][i] -= 1
                 card = self.deck[0][i]
+                break
         if card == 1:
             ace = True
         return val + card, ace
