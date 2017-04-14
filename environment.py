@@ -63,49 +63,58 @@ class RLEnvironment:
         player_val, player_ace = player_hand
         return player_val, player_ace, game.dealer_first_card
 
+    def run_Black_Jack_environment(self, q_t, q_c, mode):
+        # Start a new game
+        game = Blackjack(mode)
+
+        state = game.get_state()
+        player_hand = game.get_player_hand()
+        dealer_hand = game.get_dealer_hand()
+        status = game.get_status()
+
+        # If player's total is less than 11, draw another card
+        # while player_hand[0] < 11:
+        #    player_hand = game.draw(player_hand)
+        #    state = (player_hand, dealer_hand, status)
+        rl_state = self.get_rl_state(state, game)  # Convert to condensed RL state
+
+        # Create dictionary to temporarily hold the current game's state-actions
+        returns = {}  # (state, decision): reward
+        while game.get_status() == 1:  # While game state is not terminal
+            # Epsilon-greedy action selection
+            action_probs = self.get_q_reward(rl_state, q_t)
+            if random.random() < EPISILON:
+                decision = random.randint(0, 1)
+            else:
+                decision = np.argmax(action_probs)  # Select an action with the highest probability
+            sa = (rl_state, decision)
+            # Add an action-value pair to returns list. Default value is 0
+            returns[sa] = 0
+            q_c[sa] += 1  # Increment average counter
+
+            game.play_game(decision)  # Make a move
+            state = game.get_state()  # Get the new game state
+            rl_state = self.get_rl_state(state, game)  # Compress state
+        # After a game is finished, assign rewards to all state-actions that took place in the game
+        for key in returns:
+            returns[key] = self.get_reward(state[2])
+        q_t = self.update_table(q_t, q_c, returns)
+
+        return q_t, q_c
+
     def main(self):
         print("Gonna learn real good.")
         q_t = self.get_q_table()
         q_c = self.get_counts()
 
         for i in range(EPOCHS):
-            # Start a new game
-            game = Blackjack()
-
-            state = game.get_state()
-            player_hand = game.get_player_hand()
-            dealer_hand = game.get_dealer_hand()
-            status = game.get_status()
-
-            # If player's total is less than 11, draw another card
-            # while player_hand[0] < 11:
-            #    player_hand = game.draw(player_hand)
-            #    state = (player_hand, dealer_hand, status)
-            rl_state = self.get_rl_state(state, game)  # Convert to condensed RL state
-
-            # Create dictionary to temporarily hold the current game's state-actions
-            returns = {}  # (state, decision): reward
-            while game.get_status() == 1:  # While game state is not terminal
-                # Epsilon-greedy action selection
-                action_probs = self.get_q_reward(rl_state, q_t)
-                if random.random() < EPISILON:
-                    decision = random.randint(0, 1)
-                else:
-                    decision = np.argmax(action_probs)  # Select an action with the highest probability
-                sa = (rl_state, decision)
-                # Add an action-value pair to returns list. Default value is 0
-                returns[sa] = 0
-                q_c[sa] += 1  # Increment average counter
-
-                game.play_game(decision)  # Make a move
-                state = game.get_state()  # Get the new game state
-                rl_state = self.get_rl_state(state, game)  # Compress state
-            # After a game is finished, assign rewards to all state-actions that took place in the game
-            for key in returns:
-                returns[key] = self.get_reward(state[2])
-            q_t = self.update_table(q_t, q_c, returns)
+           q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, G_Mode)
 
         print("Finished learning.")
+
+        for i in range(5):
+            print("Running Test: ", i+1, " Of 5")
+            q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, i)
 
         with open('results.txt', 'w') as file:
             for key, val in q_t.items():

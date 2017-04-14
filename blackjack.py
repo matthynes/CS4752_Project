@@ -14,12 +14,18 @@ from settings import *
 class Blackjack:
     # start a game of blackjack
     # initial state of game is always random (this is the random sampling part of the MC method)
-    def __init__(self):
-        self.g_mode = G_Mode
+    def __init__(self, mode):
+        self.g_mode = mode
         # Status is an int used to determine the current state of the game.Fs
         # 1=in progress, 2=player wins, 3=draw, 4=dealer wins
         self.newDeck = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [4, 4, 4, 4, 4, 4, 4, 4, 4, 16]]
         self.deck = copy.deepcopy(self.newDeck)
+
+        # Scripted 5 sets of 10 cards. Used to test the RL on after training is complete
+        self.scripted_decks = [[6, 7, 3, 7, 5, 10, 5, 7, 10, 9, 1], [10, 2, 7, 8, 10, 4, 2, 6, 10, 8, 8,],
+                              [10, 5, 1, 9, 10, 2, 10, 9, 3, 8], [10, 4, 9, 1, 10, 3, 10, 10, 3, 6],
+                              [1, 10, 4, 10, 6, 10, 2, 4, 10, 5]]
+
         self.status = 1
         self.player_hand = self.draw((0, False))
         while self.player_hand[0] < 11:
@@ -97,11 +103,21 @@ class Blackjack:
             ace = True
         return val + card, ace
 
+    # To be used only when we want to demo one of 5 scripted decks.
+    def draw_card_scripted(self, hand):
+        val, ace = hand
+        card = self.scripted_decks[self.g_mode].pop()
+        if card == 1:
+            ace = True
+        return val + card, ace
+
     def draw(self, hand):
         if self.g_mode == "limited":
             return self.draw_card_limited(hand)
         elif self.g_mode == "limitless":
             return self.draw_card_limitless(hand)
+        else:
+            return self.draw_card_scripted(hand)
 
     def eval_dealer(self, hand):
         # Dealer 'hits' until hand totals >= 17
