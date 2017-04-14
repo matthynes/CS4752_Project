@@ -1,6 +1,7 @@
 import random
-import pickle
 import numpy as np
+from matplotlib import pyplot, cm
+from mpl_toolkits.mplot3d import Axes3D
 
 from settings import *
 from blackjack import Blackjack
@@ -30,6 +31,8 @@ class RLEnvironment:
         self.counts = {}
         for sa in self.q_table:
             self.counts[sa] = 0
+
+        self.figure = pyplot.figure(figsize=(20, 12))
 
     def get_states(self):
         return self.states
@@ -62,6 +65,24 @@ class RLEnvironment:
         player_hand, dealer_hand, status = state
         player_val, player_ace = player_hand
         return player_val, player_ace, game.dealer_first_card
+
+    def visualize(self, index, q_table):
+
+        ax = self.figure.add_subplot(int('23' + str(index + 1)), projection='3d')
+        ax.set_title('Test for Scripted Deck' + str(index + 1))
+        ax.set_xlabel('Player Card')
+        ax.set_ylabel('Dealer Card')
+        ax.set_zlabel('Q Value')
+
+        x, y, z = [], [], []
+        for state in self.get_states():
+            if state[0] > 11 and not state[1] and state[2] < 21:
+                x.append(state[0])
+                y.append(state[2])
+                q_val = max([q_table[(state, 0)], q_table[(state, 1)]])  # select the most likely action
+                z.append(q_val)
+        ax.azim = 230
+        ax.plot_trisurf(x, y, z, linewidth=.02, cmap=cm.jet)
 
     def run_Black_Jack_environment(self, q_t, q_c, mode):
         # Start a new game
@@ -108,13 +129,15 @@ class RLEnvironment:
         q_c = self.get_counts()
 
         for i in range(EPOCHS):
-           q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, G_Mode)
+            q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, G_Mode)
 
         print("Finished learning.")
 
         for i in range(5):
-            print("Running Test: ", i+1, " Of 5")
+            print("Running Test: ", i + 1, " Of 5")
             q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, i)
+            self.visualize(i, q_t)
+        pyplot.savefig('fig.png')
 
         with open('results.txt', 'w') as file:
             for key, val in q_t.items():
