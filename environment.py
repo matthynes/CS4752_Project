@@ -1,4 +1,5 @@
 import random
+import copy
 import numpy as np
 from matplotlib import pyplot, cm
 from mpl_toolkits.mplot3d import Axes3D
@@ -117,24 +118,29 @@ class RLEnvironment:
         return q_t, q_c
 
     def main(self):
-        print("Gonna learn real good.")
-        q_t = self.get_q_table()
-        q_c = self.get_counts()
+        q_t_default = copy.deepcopy(self.get_q_table())
+        q_c_default = copy.deepcopy(self.get_counts())
+        for m in ["limited", "limitless"]:
+            for e in [1, 10, 100, 1000, 10000, 100000, 1000000]:
+                print("Gonna learn real good.")
+                print(m, " with ", e, " Iterations")
+                q_t = copy.deepcopy(q_t_default)
+                q_c = copy.deepcopy(q_c_default)
 
-        for i in range(EPOCHS):
-            q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, G_Mode)
+                for i in range(e):
+                    q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, m)
 
-        print("Finished learning.")
+                print("Finished learning.")
 
-        for i in range(5):
-            print("Running Test: ", i + 1, " Of 5")
-            q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, i)
-            self.visualize(i, q_t)
-        pyplot.savefig('fig.png')
+                for i in range(5):
+                    print("Running Test: ", i + 1, " Of 5")
+                    q_t, q_c = self.run_Black_Jack_environment(q_t, q_c, i)
+                    self.visualize(i, q_t)
+                pyplot.savefig('fig_'+m+str(e)+'_.png')
 
-        with open('results.txt', 'w') as file:
-            for key, val in q_t.items():
-                file.write(str(key) + ':' + str(val) + '\n')
+                with open('results.txt', 'w') as file:
+                    for key, val in q_t.items():
+                        file.write(str(key) + ':' + str(val) + '\n')
 
 
 if __name__ == '__main__':
