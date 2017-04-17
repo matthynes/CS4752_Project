@@ -104,7 +104,7 @@ class RLEnvironment:
         while game.get_status() == 1:  # While game state is not terminal
             # Epsilon-greedy action selection
             action_probs = self.get_q_reward(rl_state, q_t)
-            if random.random() < EPISILON:
+            if random.random() < EPSILON:
                 decision = random.randint(0, 1)
             else:
                 decision = np.argmax(action_probs)  # Select an action with the highest probability
