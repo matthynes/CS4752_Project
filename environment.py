@@ -89,14 +89,7 @@ class RLEnvironment:
         game = Blackjack(mode)
 
         state = game.get_state()
-        player_hand = game.get_player_hand()
-        dealer_hand = game.get_dealer_hand()
-        status = game.get_status()
 
-        # If player's total is less than 11, draw another card
-        # while player_hand[0] < 11:
-        #    player_hand = game.draw(player_hand)
-        #    state = (player_hand, dealer_hand, status)
         rl_state = self.get_rl_state(state, game)  # Convert to condensed RL state
 
         # Create dictionary to temporarily hold the current game's state-actions
